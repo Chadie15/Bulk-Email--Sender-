@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\sendEmailsJob;
+namespace App\Http\Controllers;
+
 use App\Models\User;
+use App\Models\Email;
 use App\Models\Business;
 use App\Mail\CompanyMail;
+use App\Jobs\sendEmailsJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 //use Illuminate\Support\Facades\Auth;
@@ -14,58 +17,54 @@ use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
-
     public function user_store(Request $request)
     {
-            //validate the request
+        // Validate the request
         $request->validate([
             'name' => ['required', 'max:255', 'min:5', 'string'],
             'email' => 'required|email|unique:users',
-            //'password' => ['required', 'min:8', 'confirmed', Password::defaults()],
         ]);
-        // create a new user
-        $user = User::create([
+
+        // Create a new user
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
-            //'password' => Hash::make($request->password),
         ]);
 
         return to_route('Post.index');
     }
 
-    public function show_user ()
+    public function show_user()
     {
         $users = User::all();
         $businesses = Business::all();
         $business_emails = Business::pluck('email')->toArray();
-        //return view('send-emails', compact('businesses'));
 
-        //return 'Emails Sent Successfully';
         return view('send-emails', compact('users', 'businesses', 'business_emails'));
-
     }
-    
-    public function SendBulkEmails (Request $request)
+
+    public function SendBulkEmails(Request $request)
     {
+        // Validate the request
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'body' => 'required|string',
+        ]);
+
+        // Create a new Email record
+        $email = Email::create([
+            'subject' => $request->subject,
+            'body' => $request->body,
+        ]);
+
+        // Get all businesses
         $businesses = Business::all();
 
-        $subject = $request->input('subject');
-
-        //Create a new instance of a CompanyMail and pass the subject
-        $mail = new CompanyMail( $subject, $businesses);
-
-        // Send the Mail
-
-        foreach($businesses as $business)
-        {
-            sendEmailsJob::dispatch($business->name, $business->email, $subject);
+        // Dispatch jobs to send emails
+        foreach ($businesses as $business) {
+            sendEmailsJob::dispatch($business->name, $business->email, $email->subject);
         }
 
-        return redirect()->back();
-
-
+        return redirect()->back()->with('success', 'Emails sent successfully!');
     }
-
-
-   
 }
