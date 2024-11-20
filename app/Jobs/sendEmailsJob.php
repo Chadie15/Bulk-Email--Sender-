@@ -12,11 +12,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 
 class sendEmailsJob implements ShouldQueue
 {
-    use Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     public $businessName;
     public $businessEmail;
-    public $subject;
-
+    public $subject; // Add subject property
 
     /**
      * Create a new job instance.
@@ -25,8 +25,7 @@ class sendEmailsJob implements ShouldQueue
     {
         $this->businessName = $businessName;
         $this->businessEmail = $businessEmail;
-        $this->subject = $subject;
-
+        $this->subject = $subject; // Initialize subject
     }
 
     /**
@@ -35,7 +34,6 @@ class sendEmailsJob implements ShouldQueue
     public function handle(): void
     {
         // Send The Email
-         Mail::to($this->businessEmail)->send(new CompanyMail($this->subject, $this->businessName));
-
+        Mail::to($this->businessEmail)->send(new CompanyMail($this->businessName, $this->subject));
     }
 }
