@@ -21,17 +21,16 @@ class CompanyMail extends Mailable
     public function __construct($companyName, $subject)
     {
         $this->companyName = $companyName;
-
         $this->subject = $subject;
     }
 
     /**
      * Get the message envelope.
      */
-    public function envelope($subject): Envelope
+    public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $subject,
+            subject: $this->subject,
         );
     }
 
@@ -48,10 +47,11 @@ class CompanyMail extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, IlluminateMailMailablesAttachment>
      */
     public function attachments(): array
     {
         return [];
     }
 }
+
